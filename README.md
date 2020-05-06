@@ -3,7 +3,7 @@
 Steps to install :-
 
 1. Run the setup.sh bash file
-    `./setup.sh
+    `./setup.sh`
     
 2. Install science parser application
     `./scienceparse.sh`
