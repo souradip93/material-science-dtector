@@ -1,0 +1,80 @@
+body{
+/*height: 100%;*/
+font-family: 'Montserrat', sans-serif;
+}
+p {
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+section {
+  padding: 60px 0;
+}
+
+.entire-page {
+position: relative;
+min-height: 100vh;
+}
+
+.content-wrap {
+padding-bottom: 11.5rem;    /* Footer height */
+}
+
+footer {
+background: #181823 !important;
+position: absolute;
+bottom: 0;
+right: 0;
+/*padding: 1rem;*/
+width: 100%;
+height: 11.5rem;            /* Footer height */
+background-color: #efefef;
+text-align: center;
+color: #ffffff;
+}
+
+
+footer a {
+  color: #ffffff;
+  text-decoration: none !important;
+  background-color: transparent;
+  -webkit-text-decoration-skip: objects;
+}
+
+.fileinput-button {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.fileinput-button input {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    opacity: 0;
+    -ms-filter: 'alpha(opacity=0)';
+    font-size: 200px !important;
+    direction: ltr;
+    cursor: pointer;
+}
+
+input[type=file] {
+    display: block;
+}
+
+.file {
+   position: relative;
+   background: linear-gradient(to right, lightblue 50%, transparent 50%);
+   background-size: 200% 100%;
+   background-position: right bottom;
+   transition:all 1s ease;
+}
+ .file.done {
+   background: lightgreen;
+}
+ .file a {
+   display: block;
+   position: relative;
+   padding: 5px;
+   color: black;
+}

@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html class="wf-inconsolata-n5-active wf-proximanova-n7-active wf-proximanova-i7-active wf-proximanova-n4-active wf-proximanova-i4-active wf-proximanova-n3-active wf-active">
+  <head>
+    <!-- <meta charset="utf-8"> -->
+    <meta http-equiv="X-UA-Compatible" content="IE=11">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    {% load static %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery.fileupload.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/jquery.fileupload-ui.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/bootstrap-switch.min.css' %}" /> 
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.6/dist/loadingoverlay.min.js"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
+    <script type="text/javascript" src="http://cdn.jsdelivr.net/g/filesaver.js"></script>
+    <script type="text/javascript" src="{% static 'js/jszip.min.js' %}"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.4/js/bootstrap-switch.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/chart-value.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/chartbar.js' %}"></script>
+
+
+
+    <script id="template-upload" type="text/x-tmpl">
+      {% verbatim %}
+      {% for (var i=0, file; file=o.files[i]; i++) { %}
+          <tr class="template-upload fade">
+              <td>
+                  <span class="preview"></span>
+              </td>
+              <td>
+                  <p class="name">{%=file.name%}</p>
+                  <strong class="error text-danger"></strong>
+              </td>
+              <td>
+                  <p class="size">Processing...</p>
+                  <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
+              </td>
+              <td>
+                  {% if (!i) { %}
+                      <button class="btn btn-sm btn-warning cancel">
+                          <i class="glyphicon glyphicon-ban-circle"></i>
+                          <span>Cancel</span>
+                      </button>
+                  {% } %}
+              </td>
+          </tr>
+      {% } %}
+      {% endverbatim %}
+    </script>
+    <!-- The template to display files available for download -->
+    <script id="template-download" type="text/x-tmpl">
+      {% verbatim %}
+      {% for (var i=0, file; file=o.files[i]; i++) { %}
+          <tr class="template-download fade">
+              <td>
+                  <span class="preview">
+                      {% if (file.thumbnailUrl) { %}
+                          <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery><img src="{%=file.thumbnailUrl%}"></a>
+                      {% } %}
+                  </span>
+              </td>
+              <td>
+                  {% if (window.innerWidth > 480 || !file.thumbnailUrl) { %}
+                      <p class="name">
+                          {% if (file.url) { %}
+                             <span>{%=file.name%}</span>
+                          {% } %}
+                      </p>
+                  {% } %}
+                  {% if (file.error) { %}
+                      <div><span class="label label-danger">Error</span> {%=file.error%}</div>
+                  {% } %}
+              </td>
+              <td>
+                  <span class="size">{%=o.formatFileSize(file.size)%}</span>
+              </td>
+              <td>
+                  {% if (file.deleteUrl) { %}
+                      <button class="btn btn-sm btn-danger delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
+                          <i class="glyphicon glyphicon-trash"></i>
+                          <span>Delete</span>
+                      </button>
+                      <input type="checkbox" name="delete" value="1" class="toggle">
+                  {% } else { %}
+                      <button class="btn btn-sm btn-warning cancel">
+                          <i class="glyphicon glyphicon-ban-circle"></i>
+                          <span>Cancel</span>
+                      </button>
+                  {% } %}
+              </td>
+          </tr>
+      {% } %}
+      {% endverbatim %}
+    </script>
+
+
+    <title>Material Science prediction</title>
+
+
+    <script>
+
+    var results = [null];
+
+    $(document).ready(function(){
+
+      $.ajax({
+       url: {% url 'memory' %},
+       credentials : 'include',
+       method : 'GET',
+       data: {'csrfmiddlewaretoken':"{{ csrf_token }}"},
+       success: function(data){ 
+        console.log(data);
+        $('#memory').text(data);
+       }
+      });
+
+      $('#downloadBtn').click(function(e){
+        e.preventDefault();
+
+        var a = document.createElement("a");
+        a.setAttribute('href', "{% static 'paper-6.pdf' %}");
+        a.setAttribute('download', "temp.pdf");
+        a.setAttribute('target', '_blank')
+
+        a.click();
+        
+      });
+
+      $("#prettify").click(function(){
+        var ugly = $('#pdftext').val();
+        var obj = JSON.parse(ugly);
+        var pretty = JSON.stringify(obj, undefined, 4);
+        $('#pdftext').val(pretty)
+      });
+
+      $("#process").click(function(e){
+        e.preventDefault();
+        $.LoadingOverlay("show", {image:"", text:"Processing pdf manuscript...",textAutoResize:false, textResizeFactor:0.2});
+
+        var files = [];
+        $('.files a').each(function() {
+            files.push(this.href); 
+        })
+
+        $("#listOfFiles").empty();
+        results = [null];
+
+
+        $.ajax({
+          url: {% url 'process' %},
+          credentials : 'include',
+          method : 'POST',
+          contentType: "application/json",
+          data: JSON.stringify({'csrfmiddlewaretoken':"{{ csrf_token }}", 'paths' : files }),
+          success: function(data){
+            $.LoadingOverlay("hide");
+            
+            // var operations = '<td><button id="showJson" type="button" class="btn btn-sm btn-primary">Show JSON</button></td><td><button id="prediction-button" type="button" class="btn btn-sm btn-primary">Get Predictions</button></td><td><button id="downloadResults" type="button" class="btn btn-sm btn-success" disabled>Download Results</button></td>';
+
+            var operations = '<td class="text-center"><input type="radio" name="viewResults"></td><td  class="text-center"><input type="radio" name="showJson"></td><td  class="text-center"><button id="prediction-button" type="button" class="btn btn-sm btn-primary">Get Predictions</button></td><td  class="text-center"><button id="downloadResults" type="button" class="btn btn-sm btn-success" disabled>Download Results</button></td>';
+
+            // var progressbar = '<div class="col-md-12 progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="display:none"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>';
+            var progress = '<div class="col-md-12 progressStatus"></div>';
+            
+            // '<div class="row">' +  + '</div><div class="row">' + progressbar + '</div>'
+               
+            var elem = "";     
+            for(var i=0;i<data.length;i++){
+              elem += "<tr><td><div class='row'><span class='filename' style='display:none'>" + data[i].path + "</span><div class='col-md-12'>" + data[i].fname + "</div></div><div class='row'>" + progress + '</div></td>' +operations+"</tr>";
+              results.push(null);
+            }
+            
+            console.log(elem);
+            $("#listOfFiles").append(elem);
+            $("[name='showJson']").bootstrapSwitch('size', 'small');
+            $("[name='viewResults']").bootstrapSwitch('size', 'small')
+            $("[name='viewResults']").bootstrapSwitch('disabled',true);
+            // $("[name='showJson']:first").bootstrapSwitch('toggleRadioState');
+
+            $('#jsontext').click();
+          },
+          error: function (jqXHR, exception) {
+            console.log(exception);
+            $.LoadingOverlay("hide");
+           }
+        });
+      });
+
+      $('#predictall').click(function(){
+        // var zip = new JSZip();
+
+        // var cnt = 1;
+
+        $('#results-table tr').each(function(index){
+          if(index > 0){
+            $(this).find('#prediction-button').trigger('click', function(){
+            });
+          } 
+        });
+
+        
+      });
+
+
+      $('#downloadall').click(function(){
+
+        var cnt = 0;
+        for(var i=0;i<results.length;i++)
+          if(results[i]!=null) cnt++;
+
+        if(cnt==0){
+          alert("You have not generated any predictions. Please click on \"Get Predictions\" button or \"Predict all\" link to generate predictions.")
+          return;
+        }
+
+        var r = confirm("You have generated predictions for " + cnt + " documents. Proceed?");
+        if( r == false ) return;
+
+        var zip = new JSZip();
+        $('#results-table tr').each(function(index){
+          if(index > 0 && results[index] != null){
+              zip.file("results-" + $(this).find('.filename').next().text() + ".json", JSON.stringify( results[index]["predictions"]  , undefined, 4  ));
+          } 
+        });
+
+        zip.generateAsync({type:"blob"})
+          .then(function(content) {
+              // see FileSaver.js
+              saveAs(content, "results.zip");
+          });
+      });
+
+
+      $("#process").prop('disabled', true);
+
+      $('#graph').click(function(){
+        $('#predictions').hide();
+      });
+      $('#jsontext').click(function(){
+        if ($('#results-table > tbody > tr').length == 0)
+          $('#results-table').hide();
+        else
+          $('#results-table').show();
+
+        $('#predictions').show();
+      });
+      $('#upload').click(function(){
+        $('#predictions').hide();
+      });
+
+      $('.progress').hide();
+      $('#structure-tab').click();
+      $('#graph').click();
+      $('#pdftext').attr('readonly','readonly');  
+
+    });
+
+
+    $(document).on('click','#prediction-button', function(e, callback){
+
+      // $.LoadingOverlay("show", {image:"", text:"Running the model...",textAutoResize:false, textResizeFactor:0.2});
+
+        // td -> row -> col -> button 
+       var tr = $(this).closest("tr");
+       var index = $('#results-table tr').index(tr);
+       var path = tr.find(".filename").text();
+       tr.find(".progressStatus").empty();
+       tr.find(".progressStatus").append('<span class="label label-warning">Processing</span><img src="static/img/loading.gif" height="15">');
+
+       var files = [];
+       files.push(path);
+
+       var button = $(this);
+
+       button.prop('disabled',true);
+
+       $.ajax({
+           url: {% url 'submit' %},
+           credentials : 'include',
+           method : 'POST',
+           contentType: "application/json",
+           data: JSON.stringify({'csrfmiddlewaretoken':"{{ csrf_token }}", 'files': files, 'pdftext' : $("#pdftext").val() }),
+           success: function(data){ 
+              console.log(data);
+
+              predictions = data.predictions
+              parameter_lines = data.parameter_lines
+              structure_lines = data.structure_lines
+
+              results[index] = {"predictions": predictions, "parameter_lines":parameter_lines,"structure_lines":structure_lines};
+              tr.find('#downloadResults').prop('disabled',false);
+              button.prop('disabled',false);
+
+              // $.LoadingOverlay("hide");
+              tr.find(".progressStatus").empty()
+              tr.find(".progressStatus").append('<span class="label label-success">Done</span>');
+
+              tr.find("[name='viewResults']").bootstrapSwitch('disabled',false);
+              tr.find("[name='viewResults']").bootstrapSwitch('state', true);
+              // tr.find("[name='showJson']").bootstrapSwitch('state', true);
+
+              if (typeof callback === "function")
+                callback();
+            },
+           error: function (jqXHR, exception) {
+            console.log(exception);
+            // $.LoadingOverlay("hide");
+            tr.find(".progressStatus").empty()
+            tr.find(".progressStatus").append('<span class="label label-error">Error</span>');
+            $(this).prop('disabled',false);
+           }
+        });
+    });
+
+
+    $(document).on('switchChange.bootstrapSwitch','input[type=radio][name=showJson]', function(){
+      $.LoadingOverlay("show", {image:"", text:"Getting JSON data...",textAutoResize:false, textResizeFactor:0.2});
+      var tr = $(this).closest("tr");
+      var elem = tr.find(".filename").text();
+
+      $.ajax({
+          url: {% url 'showjson' %},
+          credentials : 'include',
+          method : 'POST',
+          data: {'csrfmiddlewaretoken':"{{ csrf_token }}", 'path' : elem },
+          success: function(data){
+            $.LoadingOverlay("hide");
+            var obj = JSON.parse(data);
+            var pretty = JSON.stringify(obj, undefined, 4);
+            $('#pdftext').val(pretty);
+          },
+          error: function (exception) {
+            console.log(exception);
+            $.LoadingOverlay("hide");
+          }
+      });
+    });
+
+    $(document).on('switchChange.bootstrapSwitch','input[type=radio][name=viewResults]', function(){
+      var tr = $(this).closest("tr");
+      var elem = tr.find(".filename").text();
+      var index = tr.index() + 1;
+
+      var pre = "<div class='panel panel-default panel-compound'><div class='panel-body'>";
+      var join_elem = 'No results found';
+      var elem = pre + join_elem + '</div></div>';
+
+      $('#material').html(elem);
+      $('#method').html(elem);
+      $('#parameter').html(elem);
+      $('#code').html(elem);
+      $('#structure').html(elem);
+
+
+      console.log(index, results[index]);
+      if(results[index] == null){
+        alert("Predictions for this file is not generates. Please click on \"Get Predictions\" button.");
+        return;
+      }
+      var predictions = results[index]["predictions"];
+      var parameter_lines = results[index]["parameter_lines"];
+      var structure_lines = results[index]["structure_lines"];
+
+      
+      if (predictions.hasOwnProperty('MATERIAL')){
+        join_elem = predictions.MATERIAL.join("</div><div class='panel-body'>");
+      }
+
+      var elem = pre + join_elem + '</div></div>';
+      $('#material').html(elem);
+
+      join_elem = 'No results found';
+      if (predictions.hasOwnProperty('METHOD')){
+        join_elem = predictions.METHOD.join("</div><div class='panel-body'>");
+      }
+      var elem = pre + join_elem + '</div></div>';
+      $('#method').html(elem);
+
+      join_elem = 'No results found';
+      if (predictions.hasOwnProperty('PARAMETER')){
+
+        parameters = []
+        for(let i = 0; i < (predictions.PARAMETER).length; i++){
+          content = "<a href=\"javascript:void(0);\" data-html=\"true\"  data-toggle=\"tooltip\" title=\"" + parameter_lines[(predictions.PARAMETER)[i]].join("<br><br>") + "\">" + (predictions.PARAMETER)[i]; + "</a>";
+          parameters.push(content);
+        }
+        
+        join_elem = parameters.join("</div><div class='panel-body'>");
+      }
+      var elem = pre + join_elem + '</div></div>';
+      $('#parameter').html(elem);
+
+      join_elem = 'No results found';
+      if (predictions.hasOwnProperty('CODE')){
+        join_elem = predictions.CODE.join("</div><div class='panel-body'>");
+      }
+      var elem = pre + join_elem + '</div></div>';
+      $('#code').html(elem);
+
+      join_elem = 'No results found';
+      if (predictions.hasOwnProperty('STRUCTURE')){
+
+        structures = []
+        for(let i = 0; i < (predictions.STRUCTURE).length; i++){
+          content = "<a href=\"javascript:void(0);\" data-toggle=\"tooltip\" title=\"" + structure_lines[(predictions.STRUCTURE)[i]].join("<br><br>") + "\">" + (predictions.STRUCTURE)[i]; + "</a>";
+          structures.push(content);
+        }
+
+
+        join_elem = structures.join("</div><div class='panel-body'>");
+      }
+      var elem = pre + join_elem + '</div></div>';
+      $('#structure').html(elem);
+
+
+      $([document.documentElement, document.body]).animate({
+          scrollTop: $("#predictions").offset().top
+      }, 2000);
+
+    });
+
+    function download(filename, text) {
+
+        var zip = new JSZip();
+        zip.file("results.json", text);
+        zip.generateAsync({type:"blob"})
+        .then(function(content) {
+            // see FileSaver.js
+            saveAs(content, "results.zip");
+        });
+    }
+
+    $(document).on('click','#downloadResults', function(){
+        var tr = $(this).closest("tr");
+        var index = $('#results-table tr').index(tr);
+        var data = results[index]["predictions"];
+        
+        var blob = new Blob([JSON.stringify( data , undefined, 4 )], {type: "text/plain;charset=utf-8"});
+        saveAs(blob, "results.json");
+
+        // download('results.json', JSON.stringify( data ));
+    });
+
+    </script>
+
+
+  </head>
+  <body>
+
+
+  <div class='entire-page'>
+
+    <div class='content-wrap'>
+  <nav class="navbar navbar-default navbar-static-top" style="background: #181823;">
+    <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#" style="color: #ffffff">Material Science Predictor</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- <div class="row">
+      <h1>Material Science Prediction</h1>
+    </div> -->
+
+    <div class="row">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <h1>Online Demo</h1>
+        <p>
+          <span class="label label-info" id="memory"></span><br>
+          Upload a PDF file to try MaterialSciencePredictor online. Alternatively you can also enter a valid json text.
+        </p>
+        <p>
+          This demo is configured to predict Material, Code, Method, Parameter, Structure. By default the results are post-processed by some heuristics.
+        </p>
+
+      </div>
+    </div>
+
+
+    <div class="row">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+
+        <ul class="nav nav-tabs" role="tablist">
+          <li role="presentation" class="active"><a href="#tab-file" role="tab" data-toggle="tab" id='upload'>Upload a file</a></li>
+          <li role="presentation"><a href="#tab-text" role="tab" data-toggle="tab" id='jsontext'>Get predictions</a></li>
+          <li role="presentation"><a href="#tab-graph" role="tab" data-toggle="tab" id='graph'>Chart</a></li>
+        </ul>
+    
+        <br>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="tab-file">
+
+              <form
+                id="fileupload"
+                action="{% url 'upload2' %}"
+                method="POST"
+                enctype="multipart/form-data"
+              >
+
+                <div class="fileupload-buttonbar">
+                  <div class="row">
+                    <div class="col-md-4 col-sm-6 col-xs-6">
+                      <!-- The fileinput-button span is used to style the file input field as button -->
+                      <span class="btn btn-success btn-sm fileinput-button">
+                        <i class="glyphicon glyphicon-plus"></i>
+                        <span>Add files...</span>
+                        <input type="file" name="files[]" multiple />
+                      </span>
+                      <button class="btn btn-primary btn-sm start" id="process">
+                        <i class="glyphicon glyphicon-upload"></i>
+                        <span>Process PDF</span>
+                      </button>
+                      <!-- The global file processing state -->
+                      <span class="fileupload-process"></span>
+                    </div>
+                    <!-- The global progress state -->
+                    <div class="col-md-8 col-sm-5 col-xs-6 progress-striped active">
+                      <div class="progress-bar progress-bar-global progress-bar-success"></div>
+                    </div>
+
+                  </div>
+                </div>
+                <br>
+                  <!-- The table listing the files available for upload/download -->
+                <table role="presentation" class="table table-striped">
+                  <tbody class="files"></tbody>
+                </table>
+              </form>
+
+              <br>
+
+            </div>
+            <div role="tabpanel" class="tab-pane" id="tab-text">
+
+              <div class='row'>
+                <div class="col-md-10 col-sm-10 col-xs-10">
+
+                    <!-- <ul class="list-group" id="listOfFiles">
+                    </ul> -->
+
+                    <table class="table table-condensed" id="results-table">
+                      <thead>
+                        <tr>
+                          <th class="col-md-4">File name</th>
+                          <th class="col-md-2 text-center">View results</th>
+                          <th class="col-md-2 text-center">Show json</th>
+                          <th class="col-md-2 text-center"><a href="javascript:void(0)" id="predictall">Predict all</a></th>
+                          <th class="col-md-2 text-center"><a href="javascript:void(0)" id="downloadall">Download all</a></th>
+                        </tr>
+                      </thead>
+                      <tbody id="listOfFiles">
+                      </tbody>
+                    </table>
+
+                    <textarea id="pdftext" class="form-control" rows="10"  placeholder="This section displays JSON format of the input PDF."></textarea>
+                </div>
+                <!-- <div class="col-md-4 col-sm-4 col-xs-4">
+
+                  <div class="row">
+                    <button id="sample-button" type="button" class="btn btn-sm btn-success">Sample json</button>
+                    <button id="prediction-button" type="button" class="btn btn-sm btn-primary">Get Predictions</button>
+                    <button id="prettify" type="button" class="btn btn-sm btn-primary">Prettify</button>
+                  </div>
+                  <div class="row">
+
+                  </div>
+                </div> -->
+
+              </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="tab-graph">
+
+              <div class='row'>
+                <div class='col-md-10 col-sm-12 col-xs-12'>
+                  <div id='chartContainer' style="height:500px"></div>
+                </div>
+              </div>
+            </div>
+        </div>
+
+
+      </div>
+    </div>
+    <br>
+
+    <div id="predictions" >
+      <h2>Results</h2>
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link" id="material-tab" data-toggle="tab" href="#material" role="tab" aria-controls="material" aria-selected="true">Material</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="code-tab" data-toggle="tab" href="#code" role="tab" aria-controls="code" aria-selected="false">Code</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="method-tab" data-toggle="tab" href="#method" role="tab" aria-controls="method" aria-selected="false">Method</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="parameter-tab" data-toggle="tab" href="#parameter" role="tab" aria-controls="parameter" aria-selected="false">Parameter</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="structure-tab" data-toggle="tab" href="#structure" role="tab" aria-controls="structure" aria-selected="false">Structure</a>
+        </li>
+      </ul>
+      <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade" id="material" role="tabpanel" aria-labelledby="material-tab">
+          <div class="panel panel-default panel-compound">
+            <div class="panel-body">
+              No results found
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="code" role="tabpanel" aria-labelledby="code-tab">
+          <div class="panel panel-default panel-compound">
+            <div class="panel-body">
+              No results found
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="method" role="tabpanel" aria-labelledby="method-tab">
+          <div class="panel panel-default panel-compound">
+            <div class="panel-body">
+              No results found
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="parameter" role="tabpanel" aria-labelledby="parameter-tab">
+          <div class="panel panel-default panel-compound">
+            <div class="panel-body">
+              No results found
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="structure" role="tabpanel" aria-labelledby="structure-tab">
+          <div class="panel panel-default panel-compound">
+            <div class="panel-body">
+              No results found
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  </div>
+
+  <footer>
+      <!-- <div class="row text-center"> -->
+        <!-- <div class="col-md-12"> -->
+          <h3>Material Science Predictor</h3>
+          <ul class="list-unstyled quick-links">
+            <li><a href="javascript:void();">Indian Institute of Technology</li>
+            <li><a href="javascript:void();">Kharagpur</li>
+          </ul>
+        <!-- </div> -->
+      <!-- </div> -->
+  </footer>
+
+  </div>
+
+  <script src="{% static 'js/vendor/jquery.ui.widget.js' %}"></script>
+  <script src="https://blueimp.github.io/JavaScript-Templates/js/tmpl.min.js"></script>
+  <!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
+  <script src="{% static 'js/jquery.iframe-transport.js' %}"></script>
+  <script src="{% static 'js/jquery.fileupload.js' %}"></script>
+  <script src="{% static 'js/jquery.fileupload-process.js' %}"></script>
+  <script src="{% static 'js/jquery.fileupload-ui.js' %}"></script>
+  <script src="{% static 'js/jquery.fileupload-validate.js' %}"></script>
+  <!-- The main application script -->
+  <script src="{% static 'js/demo.js' %}"></script>
+
+  </body>
+</html>
