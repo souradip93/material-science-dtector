@@ -5,4 +5,4 @@ tar -xvzf pytorch_lstmcrf-master/elmo_finetuned_matsci.tar.gz
 
 wget https://www.dropbox.com/s/o3quow2k1x8wcee/all_mimicking_model_part2.tar.gz -O pytorch_lstmcrf-master/all_mimicking_model_part2/all_mimicking_model_part2.tar.gz
 
-
+wget https://github.com/allenai/science-parse/releases/download/v2.0.3/science-parse-server-assembly-2.0.3.jar
