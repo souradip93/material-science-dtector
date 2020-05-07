@@ -4,6 +4,7 @@ import tarfile
 import os
 import torch
 import argparse
+import numpy as np
 from sklearn.metrics import classification_report
 from allennlp.commands.elmo import ElmoEmbedder
 from tqdm import tqdm
@@ -122,9 +123,12 @@ def read_parse_write(elmo: ElmoEmbedder, insts: List[Instance], mode: str = "ave
     :param mode: the mode of elmo vectors
     :return:
     """
-    for inst in insts:
-        vec = parse_sentence(elmo, inst.input.words, mode=mode)
-        inst.elmo_vec = vec
+    all_vecs = elmo.embed_sentences([inst.input.words for inst in insts])
+    index = 0
+    for vec in all_vecs:
+        insts[index].elmo_vec = np.average(vec, 0)
+        index += 1
+
 
 
 #with open('data/IKST_dataset_3line/test.txt') as f:

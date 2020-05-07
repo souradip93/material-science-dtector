@@ -37,7 +37,7 @@ def load_elmo(cuda_device: int) -> ElmoEmbedder:
     :param cuda_device:
     :return:
     """
-    return ElmoEmbedder(weight_file = "elmo_weights.hdf5",cuda_device=cuda_device)
+    return ElmoEmbedder(options_file = "elmo_options.json", weight_file = "elmo_weights.hdf5",cuda_device=cuda_device)
 
 
 def read_parse_write(elmo: ElmoEmbedder, infile: str, outfile: str, mode: str = "average") -> None:
