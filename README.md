@@ -23,3 +23,5 @@ Steps to install :-
      
      
 Open http://localhost:1993 in your browser.
+
+Note : This application is configured to be run in CPU servers.
