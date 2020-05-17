@@ -23,8 +23,9 @@
     <script type="text/javascript" src="http://cdn.jsdelivr.net/g/filesaver.js"></script>
     <script type="text/javascript" src="{% static 'js/jszip.min.js' %}"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.4/js/bootstrap-switch.min.js"></script>
-    <script type="text/javascript" src="{% static 'js/chart-value.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/chartbar.js' %}"></script>
+    <!--<script type="text/javascript" src="{% static 'js/chart-value.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/chartbar.js' %}"></script>-->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 
 
@@ -110,6 +111,50 @@
     var results = [null];
 
     $(document).ready(function(){
+
+
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+	var data = google.visualization.arrayToDataTable([['Code','ABINIT', 'ATK', 'BOLTZTRAP', 'CASTEP', 'CRYSTAL', 'FLEUR', 'GAUSSIAN', 'GPAW', 'LAMMPS', 'MATLAB', 'OPIUM', 'PHONOPY', 'PWSCF', 'QUANTUM-EXPRESSO', 'SIESTA', 'VASP', 'VESTA', 'WANNIER', 'WIEN', { role: 'annotation' }], ['2010', 20, 0, 0, 9, 0, 5, 6, 0, 0, 0, 4, 0, 10, 28, 24, 128, 0, 0, 32,''], ['2011', 19, 0, 0, 23, 0, 6, 0, 8, 14, 0, 7, 8, 7, 63, 29, 171, 0, 0, 38,''], ['2012', 24, 0, 0, 18, 0, 0, 0, 0, 21, 0, 0, 0, 13, 68, 38, 237, 9, 0, 67,''], ['2013', 31, 0, 0, 43, 0, 12, 0, 0, 30, 0, 0, 0, 9, 89, 50, 283, 9, 0, 68,''], ['2014', 17, 9, 14, 22, 0, 0, 0, 0, 47, 0, 0, 18, 9, 101, 49, 318, 0, 12, 63,''], ['2015', 25, 0, 0, 33, 0, 0, 10, 0, 67, 0, 0, 39, 0, 129, 42, 386, 17, 0, 63,''], ['2016', 30, 0, 12, 35, 0, 0, 0, 12, 77, 0, 0, 49, 0, 123, 42, 388, 22, 14, 80,''], ['2017', 34, 0, 11, 25, 14, 0, 0, 16, 85, 11, 0, 51, 0, 163, 24, 441, 33, 20, 75,''], ['2018', 27, 0, 19, 27, 0, 0, 0, 0, 87, 0, 0, 56, 0, 195, 34, 471, 42, 24, 94,''], ['2019', 29, 0, 15, 30, 0, 0, 0, 0, 114, 0, 0, 64, 0, 218, 22, 551, 36, 38, 92,'']]);
+
+	var options = {
+	      width: '100%',
+        height: 400,
+	      legend: { position: 'bottom'},
+	      bar: { groupWidth: '40%' },
+	      isStacked: 'percent',
+        title: 'Distribution of codes among papers published between 2010 to 2019',
+        titleTextStyle: {
+          fontSize : 16
+        },
+        hAxis: { textPosition: 'none' },
+	      series: {
+		          0:{color:'#5f92d4'},
+		          1:{color:'#889dd9'},
+		          2:{color:'#a7a9dd'},
+		          3:{color:'#c1b7e1'},
+		          4:{color:'#d6c5e5'},
+		          5:{color:'#eebed4'},
+		          6:{color:'#eda9bf'},
+		          7:{color:'#ea95a7'},
+		          8:{color:'#de7e58'},
+		          9:{color:'#e39b73'},
+		          10:{color:'#e8b692'},
+		          11:{color:'#f2e1b4'},
+		          12:{color:'#eadfa0'},
+		          13:{color:'#ddde8d'},
+		          14:{color:'#b5de6f'},
+		          15:{color:'#b2e3d5'},
+		          16:{color:'#5bd0c6'},
+		          17:{color:'#22c9c4'},
+		          18:{color:'#5ad6ad'},
+	      }
+	};
+	var chart = new google.visualization.BarChart(document.getElementById('chartContainer'));
+	chart.draw(data, options);
+      }
 
       $.ajax({
        url: {% url 'memory' %},
@@ -582,7 +627,7 @@
 
               <div class='row'>
                 <div class='col-md-10 col-sm-12 col-xs-12'>
-                  <div id='chartContainer' style="height:500px"></div>
+                  <div id='chartContainer'></div>
                 </div>
               </div>
             </div>
